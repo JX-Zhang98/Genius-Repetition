@@ -77,6 +77,8 @@ if __name__ == '__main__':
 
     average_sim = list_average(sim_list)
     print('average similarity among different funcs: {}'.format(average_sim))
+    with open('conclusion', 'a+') as f:
+        f.write('average similarity among different funcs: {}\n'.format(average_sim))
 
     # same func among different commits
     opt = ['Os', 'O2', 'O3']
@@ -89,7 +91,8 @@ if __name__ == '__main__':
 
     average_sim = list_average(sim_list)
     print('average similarity among different commits with optimization in O2: {}'.format(average_sim))
-
+    with open('conclusion', 'a+') as f:
+        f.write('average similarity among same func in different commits with optimization in O2: {}\n'.format(average_sim))
 
     # same func among different optimizations in same commit
 
