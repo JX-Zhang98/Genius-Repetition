@@ -22,8 +22,8 @@ def compare_two_func(commit1, opt1, func1, commit2, opt2, func2):
     [[[], [16, 14, 32], 0, 1, 3, 0, 2, 0.23809523809523808], [[], [1], 1, 1, 2, 0, 1, 0.17857142857142855], [[], [30], 0, 0, 1, 0, 1, 0.03571428571428571], [[], [18695, 49160], 5, 1, 14, 0, 2, 0.0], [[], [21, 112], 1, 0, 7, 0, 0, 0.0], [[], [18689, 491^C
     '''
 
-    obj1 = '.'.join((func1, commit1, opt1))
-    obj2 = '.'.join((func2, commit2, opt2))
+    obj1 = '.'.join((func1, commit1.split("/")[0], opt1))
+    obj2 = '.'.join((func2, commit2.split("/")[0], opt2))
 
     dataset = json.load(dataset_file)
     t0 = time.time()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     sim_list = []
     pool = mp.Pool(5)
     result = [pool.apply_async(compare_two_func, args=(commits[0], 'O2',funcs[i], commits[0], 'O2',funcs[j]))
-        for i in range(5) for j in range(i, 5)]
+        for i in range(5) for j in range(i+1, 5)]
     pool.close()
     sim_list += [p.get() for p in result]
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     sim_list = []
     pool = mp.Pool(5)
     result = [pool.apply_async(compare_two_func, args=(commits[i], 'O2', funcs[t], commits[j], 'O2', funcs[t]))
-        for i in range(5) for j in range(i, 5) for t in range(len(funcs))]
+        for i in range(5) for j in range(i+1, 5) for t in range(len(funcs))]
     pool.close()
     sim_list += [p.get() for p in result]
 
