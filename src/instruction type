@@ -1,0 +1,20 @@
+1. calls
+    arm64_CI {'b', 'bl', 'cbz', 'cbnz', 'tbz', 'tbnz', 'b.ge', 'b.le', 'b.ne', 'b.le', 'b.gt', 'b.lt'}
+    x86_CI {'call', 'jal', 'jalr'}
+
+2. logic instruction
+    arm64_LI = {'and', 'orr', 'eor', 'xor'}
+    x86_LI = {'and':1, 'andn':1, 'andnpd':1, 'andpd':1, 'andps':1, 'andnps':1, 'test':1, 'xor':1, 'xorpd':1, 'pslld':1}
+	mips_LI = {'and':1, 'andi':1, 'or':1, 'ori':1, 'xor':1, 'nor':1, 'slt':1, 'slti':1, 'sltu':1}
+
+3. transfer instruction
+    x86_TI = {'jmp':1, 'jz':1, 'jnz':1, 'js':1, 'je':1, 'jne':1, 'jg':1, 'jle':1, 'jge':1, 'ja':1, 'jnc':1, 'call':1}
+	mips_TI = {'beq':1, 'bne':1, 'bgtz':1, "bltz":1, "bgez":1, "blez":1, 'j':1, 'jal':1, 'jr':1, 'jalr':1}
+	arm_TI = {'mvn', "mov", 'movz', 'movn'}
+
+4. arithmetic instruction
+    arm64_AI = {'add', 'sub', 'adc', 'sbc', ''}
+
+5. others
+    arm64 = {'ldr', 'ldrb', 'ldp', ''str', 'stp', 'adr', 'adrp'}
+    no relevant = {'uxtb', 'sxtw, 'cmp', 'tst', 'ret', 'ubfx'}
