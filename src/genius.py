@@ -59,7 +59,7 @@ if __name__ == '__main__':
     
     ## gen_dataset.get_diff_graphs()
 
-    funcs = gen_dataset.get_func()
+    funcs = gen_dataset.get_funcs()
     commits = gen_dataset.get_commits()    
     # this experiment will test similarities among 5 commits with all optimizations
     # 5 funcs are tested
