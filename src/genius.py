@@ -33,14 +33,20 @@ def compare_two_func(commit1, opt1, func1, commit2, opt2, func2):
         sim = "Error!"
     
     t1 = time.time()
-    with open('exec_result', 'a+') as f:
+    with open('exec_record', 'a+') as f:
         f.write('------------------------\n')
         f.write('func1: {}\n'.format(obj1))
         f.write('func2: {}\n'.format(obj2))
         f.write('sim: {}\n'.format(sim))
         f.write('time cost: {}s\n'.format(t1-t0))
+    
+    dic = {}
+    subdic = {}
+    subdic['sim'] = sim
+    subdic['timeuse'] = t1-t0
+    dic[''.join(obj1, "@", func1, ":", obj2, "@", func2)] = subdic
 
-    return sim
+    return sim,dic
 
 def list_average(sim_list):
     available_count = 0
@@ -66,6 +72,7 @@ if __name__ == '__main__':
 
     funcs = funcs[0:5]
     commits = commits[0:5]
+    sim_data = {}
 
     # different funcs 
     sim_list = []
@@ -73,7 +80,11 @@ if __name__ == '__main__':
     result = [pool.apply_async(compare_two_func, args=(commits[0], 'O2',funcs[i], commits[0], 'O2',funcs[j]))
         for i in range(5) for j in range(i+1, 5)]
     pool.close()
-    sim_list += [p.get() for p in result]
+    for p in result:
+        res = p.get()
+        sim_list += res[0]
+        sim_data = {**sim_data, **res[1]}
+    # sim_list += [p.get() for p in result]
 
     average_sim = list_average(sim_list)
     print('average similarity among different funcs: {}'.format(average_sim))
@@ -87,7 +98,11 @@ if __name__ == '__main__':
     result = [pool.apply_async(compare_two_func, args=(commits[i], 'O2', funcs[t], commits[j], 'O2', funcs[t]))
         for i in range(5) for j in range(i+1, 5) for t in range(len(funcs))]
     pool.close()
-    sim_list += [p.get() for p in result]
+    for p in result:
+        res = p.get()
+        sim_list += res[0]
+        sim_data = {**sim_data, **res[1]}
+    # sim_list += [p.get() for p in result]
 
     average_sim = list_average(sim_list)
     print('average similarity among different commits with optimization in O2: {}'.format(average_sim))
@@ -96,6 +111,8 @@ if __name__ == '__main__':
 
     # same func among different optimizations in same commit
 
+    with open('exec_result.json', 'a+') as f:
+        json.dump(sim_data, f)
 
 
 
