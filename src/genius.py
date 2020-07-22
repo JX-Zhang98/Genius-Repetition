@@ -44,7 +44,7 @@ def compare_two_func(commit1, opt1, func1, commit2, opt2, func2):
     subdic = {}
     subdic['sim'] = sim
     subdic['timeuse'] = t1-t0
-    dic[''.join(obj1, "@", func1, ":", obj2, "@", func2)] = subdic
+    dic[''.join((obj1, "@", func1, ":", obj2, "@", func2))] = subdic
 
     return sim,dic
 
