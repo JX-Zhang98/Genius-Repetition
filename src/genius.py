@@ -82,7 +82,7 @@ if __name__ == '__main__':
     pool.close()
     for p in result:
         res = p.get()
-        sim_list += res[0]
+        sim_list.append(res[0])
         sim_data = {**sim_data, **res[1]}
     # sim_list += [p.get() for p in result]
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     pool.close()
     for p in result:
         res = p.get()
-        sim_list += res[0]
+        sim_list.append(res[0])
         sim_data = {**sim_data, **res[1]}
     # sim_list += [p.get() for p in result]
 
