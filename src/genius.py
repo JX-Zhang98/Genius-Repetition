@@ -8,6 +8,12 @@ import signal
 import time
 import json
 import glob
+import os
+
+o1 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase-new", commit.split('/')[0], "out_dir", "O1", "vmlinux")
+o2 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase", commit, "vmlinux")
+o3 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase-new", commit.split('/')[0], "out_dir", "O1", "vmlinux")
+
 
 def signal_handler(signum, frame):
     raise Exception("Timed out!")
@@ -66,19 +72,92 @@ if __name__ == '__main__':
     ## gen_dataset.get_diff_graphs()
 
     funcs = gen_dataset.get_funcs()
-    commits = gen_dataset.get_commits()    
-    # this experiment will test similarities among 5 commits with all optimizations
-    # 5 funcs are tested
-
-    funcs = funcs[0:5]
-    commits = commits[0:5]
+    commits = gen_dataset.get_commits()
+    funcs = funcs[0:10]
+    '''
+    dccp_rcv_state_process
+    ext4_collapse_range
+    ext4_insert_range
+    ext4_page_mkwrite
+    ext4_punch_hole
+    ext4_setattr
+    init_once
+    follow_page_pte
+    hmac_create
+    ion_ioctl
+    '''
+    commits = commits[0:10]
+    # take the first function in first commit as an example
     sim_data = {}
+    threads = 10
+    choosen_func = 0
+    choosen_commit = 0
+    choosen_opt = 'O2'
+    optlist = ['O1', 'O2', 'O3']
 
-    # different funcs 
+    ## optimization
+    # compare one func among different optimization
+    for opt in optlist:
+        sim_list = []
+        pool = mp.Pool(threads)        
+        result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func],
+                                                            commits[choosen_commit], opt, funcs[choosen_func]))]
+        pool.close()
+        for p in result:
+            res = p.get()
+            sim_list.append(res[0])
+            sim_data = {**sim_data, **res[1]}
+        # sim_list += [p.get() for p in result]
+        average_sim = list_average(sim_list)
+        with open('conclusion', 'a+') as f:
+            f.write('similarity of one func between 2 opt is {}\n'.format(average_sim))
+
+    
+    # different funcs
+    # compare the first func with other funcs
+    for opt in optlist: # compare them in 3 optimizations
+        sim_list = []
+        pool = mp.Pool(threads)
+        result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func], 
+                                                            commits[choosen_commit], opt, funcs[i]))
+                                                            for i in range(10) if i!=choosen_func]
+        pool.close()
+        for p in result:
+            res = p.get()
+            sim_list.append(res[0])
+            sim_data = {**sim_data, **res[1]}
+        # sim_list += [p.get() for p in result]
+        average_sim = list_average(sim_list)
+        print('average similarity among different funcs: {}'.format(average_sim))
+        with open('conclusion', 'a+') as f:
+            f.write('average similarity among different funcs: {}\n'.format(average_sim))
+    
+
+    ## commits
+    # same func in different commits
+    
     sim_list = []
-    pool = mp.Pool(5)
-    result = [pool.apply_async(compare_two_func, args=(commits[0], 'O2',funcs[i], commits[0], 'O2',funcs[j]))
-        for i in range(5) for j in range(i+1, 5)]
+    pool = mp.Pool(threads)
+    result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func], 
+                                                        commits[t], choosen_opt, funcs[choosen_func]))
+                                                        for t in range(10)]
+    pool.close()
+    for p in result:
+        res = p.get()
+        sim_list.append(res[0])
+        sim_data = {**sim_data, **res[1]}
+    average_sim = list_average(sim_list)
+    print('average similarity among same func different commits with optimization in O2: {}'.format(average_sim))
+    with open('conclusion', 'a+') as f:
+        f.write('average similarity among same func different commits with optimization in O2: {}\n'.format(average_sim))
+
+    # different commits different funcs
+
+    sim_list = []
+    pool = mp.Pool(threads)
+    result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func], 
+                                                        commits[i], choosen_opt, funcs[j]))
+                                                        for i in range(5) for j in range(10)]
     pool.close()
     for p in result:
         res = p.get()
@@ -87,32 +166,11 @@ if __name__ == '__main__':
     # sim_list += [p.get() for p in result]
 
     average_sim = list_average(sim_list)
-    print('average similarity among different funcs: {}'.format(average_sim))
+    print('average similarity among different funcs in different commits with optimization as O2: {}'.format(average_sim))
     with open('conclusion', 'a+') as f:
-        f.write('average similarity among different funcs: {}\n'.format(average_sim))
+        f.write('average similarity among different funcs in different commits with optimization as O2: {}\n'.format(average_sim))
+        f.write('---------------------------------------------------------')
 
-    # same func among different commits
-    opt = ['Os', 'O2', 'O3']
-    sim_list = []
-    pool = mp.Pool(5)
-    result = [pool.apply_async(compare_two_func, args=(commits[i], 'O2', funcs[t], commits[j], 'O2', funcs[t]))
-        for i in range(5) for j in range(i+1, 5) for t in range(len(funcs))]
-    pool.close()
-    for p in result:
-        res = p.get()
-        sim_list.append(res[0])
-        sim_data = {**sim_data, **res[1]}
-    # sim_list += [p.get() for p in result]
-
-    average_sim = list_average(sim_list)
-    print('average similarity among different commits with optimization in O2: {}'.format(average_sim))
-    with open('conclusion', 'a+') as f:
-        f.write('average similarity among same func in different commits with optimization in O2: {}\n'.format(average_sim))
-
-    # same func among different optimizations in same commit
 
     with open('exec_result.json', 'a+') as f:
         json.dump(sim_data, f)
-
-
-
