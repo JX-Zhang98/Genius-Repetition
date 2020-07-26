@@ -61,7 +61,7 @@ def list_average(sim_list):
         if not isinstance(i, str):
             sum += i
             available_count += 1
-    return sum/available_count
+    return sum/available_count if available_count>0 else 0
 
 
 
