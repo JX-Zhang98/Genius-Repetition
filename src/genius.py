@@ -69,7 +69,7 @@ if __name__ == '__main__':
     # generate a dataset named ../all_data_graphs_diff.json
     # based on ../config/func_list and ../config/commit_list
     
-    gen_dataset.get_graphs()
+    gen_dataset.gen_graphs()
 
     funcs = gen_dataset.get_funcs()
     commits = gen_dataset.get_commits()
