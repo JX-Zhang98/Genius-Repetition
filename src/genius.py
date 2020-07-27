@@ -21,7 +21,7 @@ def signal_handler(signum, frame):
 def compare_two_func(commit1, opt1, func1, commit2, opt2, func2):
     # search in database directly
     signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(600)
+    signal.alarm(400)
     dataset_file = open('../all_data_graphs_diff.json', 'r')
     '''
     "ion_ioctl.f719ff9bcee2a422647790f12d53d3755f47c727.O2": 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     # generate a dataset named ../all_data_graphs_diff.json
     # based on ../config/func_list and ../config/commit_list
     
-    gen_dataset.gen_graphs()
+    # gen_dataset.gen_graphs()
 
     funcs = gen_dataset.get_funcs()
     commits = gen_dataset.get_commits()
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     pool = mp.Pool(threads)
     result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func], 
                                                         commits[t], choosen_opt, funcs[choosen_func]))
-                                                        for t in range(10)]
+                                                        for t in range(10) if t!= choosen_commit]
     pool.close()
     for p in result:
         res = p.get()
@@ -157,7 +157,8 @@ if __name__ == '__main__':
     pool = mp.Pool(threads)
     result = [pool.apply_async(compare_two_func, args=(commits[choosen_commit], choosen_opt, funcs[choosen_func], 
                                                         commits[i], choosen_opt, funcs[j]))
-                                                        for i in range(5) for j in range(10)]
+                                                        for i in range(5) for j in range(10)
+                                                        if i!=choosen_commit or j!=choosen_func]
     pool.close()
     for p in result:
         res = p.get()
