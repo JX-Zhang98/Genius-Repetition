@@ -17,6 +17,9 @@ import os
 import json
 import multiprocessing as mp
 
+o1 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase-new", commit.split('/')[0], "out_dir", "O1", "vmlinux")
+o2 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase", commit, "vmlinux")
+o3 = lambda commit: os.path.join("/mnt", "panda", "kernel", "arm64-testcase-new", commit.split('/')[0], "out_dir", "O1", "vmlinux")
 
 def get_funcs():
     f = open("../config/func_list")
@@ -48,11 +51,18 @@ def get_op_graphs(com, path, func, ty):
     return [name, graph]
 
 
-def get_diff_graphs(commit, func):
+def get_diff_graphs(commit, func, opt):
     # return a vector for each commit
     c = commit.split("/")[0]
-    name = ".".join((func, c, "O2"))
-    path = os.path.join("/mnt", "panda", "kernel", "arm64-testcase", commit, "vmlinux")
+    name = ".".join((func, c, opt))
+    # path = os.path.join("/mnt", "panda", "kernel", "arm64-testcase", commit, "vmlinux")
+    if opt == 'O1':
+        optimization = o1
+    elif opt == 'O2':
+        optimization =  o2
+    else:
+        optimization = o3
+    path = optimization(commit)
     graph = RawFeatureGraph.get_func_cfg(path, func)
 
     return [name, graph]
@@ -61,13 +71,15 @@ def get_diff_graphs(commit, func):
 def gen_graphs():
     # generate a dataset by ../config/funclist and ../config commitlist
 
-    funcs = get_funcs()
-    commits = get_commits()
+    funcs = get_funcs()[0:10]
+    commits = get_commits()[0:10]
+    opts = ['O1', 'O2', 'O3']
 
     a_dict = dict()
 
     pool = mp.Pool(mp.cpu_count())
-    result = [pool.apply_async(get_diff_graphs, args=(committ, func)) for committ in commits for func in funcs]
+    result = [pool.apply_async(get_diff_graphs, args=(committ, func, opt))
+                            for committ in commits for func in funcs for opt in opts]
     pool.close()
     ans2 = [p.get() for p in result]
 
@@ -75,7 +87,7 @@ def gen_graphs():
     for an in ans2:
         a_dict[an[0]] = an[1]
 
-    f = open("../all_data_graphs_diff.json", "w")
+    f = open("../all_data_graphs_diff.json", "a+")
     json.dump(a_dict, f)
     f.close()
     '''
